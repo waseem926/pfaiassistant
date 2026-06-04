@@ -203,7 +203,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   return Container(
     padding: const EdgeInsets.all(4),
     decoration: BoxDecoration(
-      color: const Color(0xFFF1F5F9).withOpacity(0.5),
+      color: const Color(0xFFF1F5F9).withValues(alpha: 0.5),
       borderRadius: BorderRadius.circular(16)
     ),
     child: Row(
@@ -219,7 +219,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               color: isSelected ? Theme.of(context).colorScheme.surface : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               boxShadow: isSelected 
-                 ? [BoxShadow(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))]
+                 ? [BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))]
                  : [],
             ),
           child : Text(

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:pfaiassistant/features/settings/presentation/bloc/theme_cubit.dart';
 import '../bloc/dashboard/dashboard_bloc.dart';
-import '../bloc/dashboard/dashboard_state.dart';
 import '../bloc/dashboard/dashboard_event.dart';
+import '../bloc/dashboard/dashboard_state.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -16,7 +17,12 @@ class HistoryPage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         title: Text("History", style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 24)),
-        actions: [IconButton(onPressed: () {}, icon: Icon(Icons.dark_mode_outlined, color: Theme.of(context).colorScheme.onSurface))],
+        actions: [
+          IconButton(
+            onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+            icon: Icon(Icons.dark_mode_outlined, color: Theme.of(context).colorScheme.onSurface),
+          ),
+        ],
         ),
         body: BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {

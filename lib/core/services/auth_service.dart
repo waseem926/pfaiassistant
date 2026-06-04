@@ -6,17 +6,18 @@ class AuthService {
 
   Future<bool> authenticate() async {
     try {
-      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
-      final bool isSupported = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
+      final canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
+      final isSupported =
+          canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
 
-      if(!isSupported) return true;
+      if (!isSupported) return false;
 
       return await _auth.authenticate(
         localizedReason: 'Please authenticate to access your financial data',
         authMessages: const [
           AndroidAuthMessages(
             signInTitle: 'Biometric Authentication',
-            deviceCredentialsRequiredTitle: 'PIN/Pattern required', 
+            deviceCredentialsRequiredTitle: 'PIN/Pattern required',
             biometricHint: 'Verify your identity',
           ),
         ],
@@ -25,8 +26,7 @@ class AuthService {
           biometricOnly: false,
         ),
       );
-    } catch (e) {
-      print("Auth Error: $e");
+    } catch (_) {
       return false;
     }
   }

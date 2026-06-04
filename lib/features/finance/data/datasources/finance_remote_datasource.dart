@@ -1,56 +1,53 @@
 import 'dart:convert';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import '../models/transaction_model.dart';
 
+import 'package:google_generative_ai/google_generative_ai.dart';
+
+import '../models/transaction_model.dart';
 
 abstract class FinanceRemoteDataSource {
   Future<TransactionModel> getParsedTransaction(String prompt);
 }
 
 class FinanceRemoteDataSourceImpl implements FinanceRemoteDataSource {
-  final GenerativeModel model;
-
   FinanceRemoteDataSourceImpl({required this.model});
+
+  final GenerativeModel model;
 
   @override
   Future<TransactionModel> getParsedTransaction(String prompt) async {
-    // SYSTEM PROMPT: To force gemini to return json response.
-    final systemPrompt = """
-    You are a financial assistant. Extract transaction data from the user's text.
-    Return ONLY a JSON object with these keys: 'amount', 'category', 'description'.
-    Example: { "amount": 500.0, "category": "Food", "description": "Biryani" }
-    If no transaction is found, return empty values.
-    """;
+    const systemPrompt = '''
+You are a financial assistant. Extract transaction data from the user's text.
+Return ONLY a JSON object with these keys: 'amount', 'category', 'description'.
+Example: { "amount": 500.0, "category": "Food", "description": "Biryani" }
+If no transaction is found, return empty values.
+''';
 
-    final content = [Content.text("$systemPrompt \n User: $prompt")];
+    final content = [Content.text('$systemPrompt \n User: $prompt')];
     final response = await model.generateContent(content);
 
-    String responseText = response.text ?? "{}";
+    var responseText = response.text ?? '{}';
 
-    if (responseText.contains("```")) {
-    responseText = responseText.replaceAll(RegExp(r'```json|```'), '').trim();
+    if (responseText.contains('```')) {
+      responseText =
+          responseText.replaceAll(RegExp(r'```json|```'), '').trim();
     }
 
-    final int startIndex = responseText.indexOf('{');
-    final int endIndex = responseText.lastIndexOf('}');
+    final startIndex = responseText.indexOf('{');
+    final endIndex = responseText.lastIndexOf('}');
 
     if (startIndex != -1 && endIndex != -1) {
       responseText = responseText.substring(startIndex, endIndex + 1);
     }
 
-    // Parse the string into JSON
     try {
-    final Map<String, dynamic> jsonMap = jsonDecode(responseText);
-    return TransactionModel.fromJson(jsonMap);
-    } catch (e) {
-      print("JSON Parsing Error: $e");
-      print("Raw string was: $responseText");
-
+      final jsonMap = jsonDecode(responseText) as Map<String, dynamic>;
+      return TransactionModel.fromJson(jsonMap);
+    } catch (_) {
       return TransactionModel(
-        id: DateTime.now().toString(), 
-        amount: 0.0, 
+        id: DateTime.now().toString(),
+        amount: 0.0,
         category: 'Unknown',
-        description: 'Failed to parse', 
+        description: 'Failed to parse',
         date: DateTime.now(),
       );
     }

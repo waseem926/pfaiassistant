@@ -4,10 +4,9 @@ import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashb
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
 import 'package:pfaiassistant/features/finance/presentation/pages/voice_input_page.dart';
 import 'package:pfaiassistant/features/settings/presentation/bloc/theme_cubit.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../bloc/chat_bloc.dart';
-import '../bloc/chat_state.dart';
 import '../bloc/chat_event.dart';
+import '../bloc/chat_state.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -18,36 +17,21 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
-  final stt.SpeechToText _speech = stt.SpeechToText();
-  bool _isListening = false;
-  String selectedCategory = "Food";
+  String selectedCategory = 'Food';
 
-  // Categories from your Figma Design
   final List<Map<String, String>> categories = [
-    {"label": "Food", "icon": "🍔"},
-    {"label": "Transport", "icon": "🚗"},
-    {"label": "Bills", "icon": "💡"},
-    {"label": "Shopping", "icon": "🛍️"},
-    {"label": "Entertainment", "icon": "🎬"},
-    {"label": "Groceries", "icon": "🛒"},
+    {'label': 'Food', 'icon': '🍔'},
+    {'label': 'Transport', 'icon': '🚗'},
+    {'label': 'Bills', 'icon': '💡'},
+    {'label': 'Shopping', 'icon': '🛍️'},
+    {'label': 'Entertainment', 'icon': '🎬'},
+    {'label': 'Groceries', 'icon': '🛒'},
   ];
 
-  void _listen() async {
-    if (!_isListening) {
-      bool available = await _speech.initialize();
-      if (available) {
-        setState(() => _isListening = true);
-        _speech.listen(onResult: (val) {
-          if (val.finalResult) {
-            setState(() => _isListening = false);
-            _controller.text = val.recognizedWords;
-          }
-        });
-      }
-    } else {
-      setState(() => _isListening = false);
-      _speech.stop();
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   void _submitExpense() {
@@ -176,10 +160,12 @@ class _ChatPageState extends State<ChatPage> {
               // LOADING INDICATOR
               BlocBuilder<ChatBloc, ChatState>(
                 builder: (context, state) {
-                  if (state is ChatLoading) return const Padding(
+                  if (state is ChatLoading) {
+                    return const Padding(
                     padding: EdgeInsets.only(bottom: 8.0),
                     child: LinearProgressIndicator(),
                   );
+                  }
                   return const SizedBox.shrink();
                 },
               ),
@@ -205,24 +191,26 @@ class _ChatPageState extends State<ChatPage> {
                   const SizedBox(width: 12),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const VoiceInputPage()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const VoiceInputPage(),
+                        ),
+                      );
                     },
                     child: Container(
                       height: 56,
                       width: 56,
                       decoration: BoxDecoration(
-                        color: _isListening ? Colors.red.withOpacity(0.1) : Colors.transparent,
-                        border: Border.all(
-                          color: _isListening ? Colors.red : Colors.grey.shade300,
-                        ),
+                        border: Border.all(color: Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
-                        _isListening ? Icons.stop : Icons.mic_none,
-                        color: _isListening ? Colors.red : Theme.of(context).colorScheme.onSurface,
+                        Icons.mic_none,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 40),

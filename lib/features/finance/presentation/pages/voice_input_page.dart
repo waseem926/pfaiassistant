@@ -5,9 +5,6 @@ import 'package:pfaiassistant/features/finance/domain/repositories/finance_repos
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import '../bloc/chat_bloc.dart';
-import '../bloc/chat_event.dart';
-import '../bloc/chat_state.dart';
 
 class VoiceInputPage extends StatefulWidget {
   const VoiceInputPage({super.key});
@@ -19,17 +16,12 @@ class VoiceInputPage extends StatefulWidget {
 class _VoiceInputPageState extends State<VoiceInputPage> {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
-  String _words = "";
+  String _words = '';
   bool _isProcessing = false;
   bool _showReview = false;
 
-  double _parsedAmount = 0.0;
-  String _parsedCategory = "";
-  String _parsedDescription = "";
-
-  // Mock detected data (In real app, this comes from ChatBloc / Gemini)
-  String _detectedAmount = "500 PKR";
-  String _detectedCategory = "Groceries";
+  double _parsedAmount = 0;
+  String _parsedCategory = '';
 
   @override
   void initState() {
@@ -37,60 +29,87 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
     _startListening();
   }
 
-  void _startListening() async {
-    bool available = await _speech.initialize();
-    if (available) {
-      setState(() => _isListening = true);
-      _speech.listen(
-        onResult: (val) {
-          setState(() {
-            _words = val.recognizedWords;
-            if (val.finalResult) {
-              _isListening = false;
-              _processWithAI(_words);
-            }
-          });
-        }
+  Future<void> _startListening() async {
+    final available = await _speech.initialize();
+    if (!mounted || !available) return;
+
+    setState(() => _isListening = true);
+    _speech.listen(
+      onResult: (result) {
+        setState(() {
+          _words = result.recognizedWords;
+          if (result.finalResult) {
+            _isListening = false;
+            _processWithAI(_words);
+          }
+        });
+      },
+    );
+  }
+
+  Future<void> _processWithAI(String text) async {
+    setState(() => _isProcessing = true);
+
+    try {
+      final result =
+          await serviceLocator<FinanceRepository>().getAIResponse(text);
+      if (!mounted) return;
+
+      final words = result.text.split(' ');
+      final amount = double.tryParse(
+            words.firstWhere(
+              (word) => double.tryParse(word) != null,
+              orElse: () => '0',
+            ),
+          ) ??
+          0;
+
+      setState(() {
+        _isProcessing = false;
+        _parsedAmount = amount;
+        _parsedCategory = words.isNotEmpty ? words.last.replaceAll('.', '') : '';
+        _showReview = amount > 0;
+      });
+
+      if (amount == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("AI couldn't find an amount. Try again?"),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Sorry, couldn't process that expense.")),
       );
     }
   }
 
-  void _processWithAI(String text) async {
-    setState(() => _isProcessing = true);
-
-    try {
-      final result = await serviceLocator<FinanceRepository>().getAIResponse(text);
-
-      setState(() {
-        _isProcessing = false;
-        _showReview = true;
-
-        final words = result.text.split(' ');
-
-        _parsedAmount = double.tryParse(words.firstWhere((w) => double.tryParse(w) != null, orElse: () => "0")) ?? 0.0;
-
-        _parsedCategory = words.last.replaceAll('.', '');
-
-        if (_parsedAmount == 0) {
-          _showReview = false;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("AI couldn't find an amount. Try again?"))
-          );
-        }
-      });
-    } catch (e) {
-      setState(() => _isProcessing = false); 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("AI Error: $e")));
-    }
+  void _onConfirm() {
+    context.read<DashboardBloc>().add(FetchExpensesEvent());
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ Expense saved successfully'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
-  void _onConfirm() {
-    context.read<ChatBloc>().add(SendMessageEvent(_words));
+  String get _statusTitle {
+    if (_isProcessing) return 'Processing';
+    if (_showReview) return 'Got it';
+    if (_isListening) return 'Listening';
+    return 'Ready';
+  }
 
-    context.read<DashboardBloc>().add(FetchExpensesEvent());
-
-    Navigator.pop(context);
-
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ Expense Saved Successfully"), behavior: SnackBarBehavior.floating));
+  String get _statusSubtitle {
+    if (_isProcessing) return 'Analyzing your expense';
+    if (_showReview) return 'Review your expense';
+    if (_isListening) return 'Speak naturally';
+    return 'Tap the mic to try again';
   }
 
   @override
@@ -109,53 +128,50 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.grey.shade300),
               ),
-              child: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface, size: 16),
+              child: Icon(
+                Icons.close,
+                color: Theme.of(context).colorScheme.onSurface,
+                size: 16,
+              ),
             ),
-            onPressed: () => Navigator.pop(context), 
+            onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 16),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
             const SizedBox(height: 20),
-
             Center(child: _buildStatusIcon()),
             const SizedBox(height: 40),
-
             Text(
-              _showReview ? "Got it" : "Listening",
+              _statusTitle,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              _showReview ? "Review your expense" : "Speak naturallly",
+              _statusSubtitle,
               style: const TextStyle(color: Colors.grey, fontSize: 16),
             ),
             const SizedBox(height: 40),
-
-            if (!_showReview) _buildWaveform(),
+            if (_isProcessing)
+              const CircularProgressIndicator()
+            else if (!_showReview)
+              _buildWaveform(),
             const SizedBox(height: 40),
-
             _buildInfoCard(
-              title: "TRANSCRIPT",
-              content: _words.isEmpty ? "..." : _words,
+              title: 'TRANSCRIPT',
+              content: _words.isEmpty ? '...' : _words,
               backgroundColor: const Color(0xFFF8F9FA),
             ),
-
             const SizedBox(height: 20),
-
-            if(_showReview) 
-              _buildDetectedCard(),
-            
-
+            if (_showReview) _buildDetectedCard(),
             const Spacer(),
-
             if (_showReview) _buildActionButtons(),
             const SizedBox(height: 40),
-          ], 
+          ],
         ),
       ),
     );
@@ -163,16 +179,24 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
 
   Widget _buildStatusIcon() {
     return AnimatedContainer(
-      duration: const Duration(microseconds: 300),
+      duration: const Duration(milliseconds: 300),
       height: 120,
       width: 120,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _showReview ? const Color(0xFFF8F5E9) : Theme.of(context).colorScheme.onSurface,
+        color: _showReview
+            ? const Color(0xFFF8F5E9)
+            : Theme.of(context).colorScheme.onSurface,
       ),
       child: Icon(
-        _showReview ? Icons.check : Icons.mic,
-        color: _showReview ? Colors.green : Theme.of(context).colorScheme.surface,
+        _showReview
+            ? Icons.check
+            : _isProcessing
+                ? Icons.hourglass_top
+                : Icons.mic,
+        color: _showReview
+            ? Colors.green
+            : Theme.of(context).colorScheme.surface,
         size: 50,
       ),
     );
@@ -185,9 +209,9 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 2),
           width: 4,
-          height: (index % 2 == 0) ? 20 : 40,
+          height: index.isEven ? 20 : 40,
           decoration: BoxDecoration(
-            color : Colors.grey.shade300,
+            color: Colors.grey.shade300,
             borderRadius: BorderRadius.circular(2),
           ),
         );
@@ -195,7 +219,11 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
     );
   }
 
-  Widget _buildInfoCard({required String title, required String content, required Color backgroundColor}) {
+  Widget _buildInfoCard({
+    required String title,
+    required String content,
+    required Color backgroundColor,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -206,9 +234,23 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+            ),
+          ),
           const SizedBox(height: 12),
-          Text(content, style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
+          Text(
+            content,
+            style: TextStyle(
+              fontSize: 18,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
         ],
       ),
     );
@@ -219,7 +261,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color : const Color(0xFFF3E8FF),
+        color: const Color(0xFFF3E8FF),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -229,13 +271,23 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
             children: [
               Icon(Icons.circle, color: Colors.green, size: 8),
               SizedBox(width: 8),
-              Text("DETECTED", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+              Text(
+                'DETECTED',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
-          _buildDataRow("Amount", _detectedAmount),
-          Divider(height: 32, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12)),
-          _buildDataRow("Category", _detectedCategory, icon: "🛒"),
+          _buildDataRow('Amount', _parsedAmount.toString()),
+          Divider(
+            height: 32,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
+          ),
+          _buildDataRow('Category', _parsedCategory, icon: '🛒'),
         ],
       ),
     );
@@ -248,11 +300,14 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
         Text(label, style: const TextStyle(color: Colors.grey, fontSize: 16)),
         Row(
           children: [
-            if(icon != null) Text(icon, style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 8),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            if (icon != null) Text(icon, style: const TextStyle(fontSize: 18)),
+            if (icon != null) const SizedBox(width: 8),
+            Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -264,11 +319,16 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               side: BorderSide(color: Colors.grey.shade200),
             ),
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancel", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
           ),
         ),
         const SizedBox(width: 16),
@@ -277,15 +337,25 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.onSurface,
               minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(Icons.check, color: Theme.of(context).colorScheme.surface, size: 18),
-            label: Text("Confirm", style: TextStyle(color: Theme.of(context).colorScheme.surface, fontWeight: FontWeight.bold)),
+            onPressed: _onConfirm,
+            icon: Icon(
+              Icons.check,
+              color: Theme.of(context).colorScheme.surface,
+              size: 18,
+            ),
+            label: Text(
+              'Confirm',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.surface,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
+        ),
       ],
     );
   }
