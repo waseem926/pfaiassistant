@@ -33,20 +33,25 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF1E3C72),
+    return Scaffold(
+      backgroundColor: const Color(0xFF1E3C72),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.account_balance, size: 80, color: Theme.of(context).colorScheme.surface),
+          children: const [
+            Icon(Icons.account_balance, size: 80, color: Colors.white),
             SizedBox(height: 20),
-            Text("PFAIAssistent", 
-               style: TextStyle(color: Theme.of(context).colorScheme.surface, fontSize: 24, fontWeight: FontWeight.bold),
+            Text(
+              'PFAIAssistant',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
+        ),
       ),
-     ),
     );
   }
 }

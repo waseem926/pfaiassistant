@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
+import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
 import 'package:pfaiassistant/features/finance/presentation/pages/voice_input_page.dart';
+import 'package:pfaiassistant/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../bloc/chat_bloc.dart';
 import '../bloc/chat_state.dart';
 import '../bloc/chat_event.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:pfaiassistant/core/di/service_locator.dart';
-import '../bloc/dashboard/dashboard_bloc.dart';
-import '../bloc/dashboard/dashboard_event.dart';
-import '../../domain/repositories/finance_repository.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -77,8 +74,13 @@ class _ChatPageState extends State<ChatPage> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         centerTitle: true,
-        title: const Text("Add Expense",
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Add Expense',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -87,9 +89,12 @@ class _ChatPageState extends State<ChatPage> {
               color: Color(0xFFE0F2FE),
             ),
             child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.dark_mode_outlined,
-                  color: Theme.of(context).colorScheme.onSurface, size: 20),
+              onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+              icon: Icon(
+                Icons.dark_mode_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+                size: 20,
+              ),
             ),
           ),
         ],
