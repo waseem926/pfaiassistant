@@ -53,10 +53,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_dotenv: ^6.0.1
   intl: ^0.20.2
+  crypto: ^3.0.6
 
 dev_dependencies:
   drift_dev: ^2.14.1
   build_runner: ^2.13.1
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.4
   flutter_test:
     sdk: flutter
 

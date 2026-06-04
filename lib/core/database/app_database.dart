@@ -22,6 +22,13 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (migrator, from, to) async {
+          // Add future schema migrations here when schemaVersion increases.
+        },
+      );
+
   Future<List<Transaction>> getAllTransactions() => select(transactions).get();
   Future<int> insertTransaction(TransactionsCompanion entry) => into(transactions).insert(entry);
 

@@ -1,3 +1,4 @@
+import 'package:pfaiassistant/core/validation/transaction_validator.dart';
 import 'package:pfaiassistant/features/finance/data/datasources/finance_local_datasource.dart';
 import 'package:pfaiassistant/features/finance/data/datasources/finance_remote_datasource.dart';
 import '../../domain/entities/chat_message_entity.dart';
@@ -19,14 +20,15 @@ class FinanceRepositoryImpl implements FinanceRepository {
     try {
       final transactionModel =
           await remoteDataSource.getParsedTransaction(prompt);
+      final validationError = TransactionValidator.validationError(
+        transactionModel,
+      );
 
-      if (transactionModel.amount > 0) {
-        return ExpenseParseResult.fromTransaction(transactionModel);
+      if (validationError != null) {
+        return ExpenseParseResult.failure(validationError);
       }
 
-      return ExpenseParseResult.failure(
-        "I couldn't find a specific expense in your message.",
-      );
+      return ExpenseParseResult.fromTransaction(transactionModel);
     } catch (_) {
       return ExpenseParseResult.failure(
         "Sorry, I couldn't process that expense. Please try again.",
@@ -60,6 +62,11 @@ class FinanceRepositoryImpl implements FinanceRepository {
 
   @override
   Future<void> saveTransaction(TransactionEntity transaction) async {
+    final validationError = TransactionValidator.validationError(transaction);
+    if (validationError != null) {
+      throw StateError(validationError);
+    }
+
     await localDataSource.saveTransaction(transaction);
   }
 
