@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pfaiassistant/core/di/service_locator.dart';
-import 'package:pfaiassistant/core/theme/app_theme.dart';
+import 'package:pfaiassistant/core/theme/app_theme_colors.dart';
 import 'package:pfaiassistant/features/finance/domain/entities/transaction_entity.dart';
 import 'package:pfaiassistant/features/finance/domain/repositories/finance_repository.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
@@ -304,7 +304,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.inputFillColor(context),
+        color: AppThemeColors.inputFillColor(context),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -336,10 +336,10 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.chipBackground(context, selected: true),
+        color: AppThemeColors.chipBackground(context, selected: true),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppTheme.chipBorderColor(context, selected: true),
+          color: AppThemeColors.chipBorderColor(context, selected: true),
         ),
       ),
       child: Column(

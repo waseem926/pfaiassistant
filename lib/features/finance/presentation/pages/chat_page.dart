@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pfaiassistant/core/theme/app_theme.dart';
+import 'package:pfaiassistant/core/theme/app_theme_colors.dart';
 import 'package:pfaiassistant/core/widgets/theme_toggle_button.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
@@ -116,7 +116,7 @@ class _ChatPageState extends State<ChatPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
-                    color: AppTheme.inputFillColor(context),
+                    color: AppThemeColors.inputFillColor(context),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: TextField(
@@ -239,10 +239,13 @@ class _CategoryItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: AppTheme.chipBackground(context, selected: isSelected),
+          color: AppThemeColors.chipBackground(context, selected: isSelected),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppTheme.chipBorderColor(context, selected: isSelected),
+            color: AppThemeColors.chipBorderColor(
+              context,
+              selected: isSelected,
+            ),
             width: 1.5,
           ),
         ),
@@ -256,7 +259,10 @@ class _CategoryItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: AppTheme.chipLabelColor(context, selected: isSelected),
+                color: AppThemeColors.chipLabelColor(
+                  context,
+                  selected: isSelected,
+                ),
               ),
             ),
           ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_theme_colors.dart';
+
 class AppTheme {
   static const Color primaryBlue = Color(0xFF1E3C72);
   static const Color accentPurple = Color(0xFF7C3AED);
@@ -10,7 +12,6 @@ class AppTheme {
   static const Color _lightInput = Color(0xFFF1F5F9);
   static const Color _lightInputField = Color(0xFFF8F9FA);
   static const Color _lightChipBg = Color(0xFFF3E8FF);
-  static const Color _lightChipBorder = Color(0xFFD8B4FE);
 
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
@@ -109,38 +110,20 @@ class AppTheme {
     ),
   );
 
-  static Color inputFillColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? _darkInput
-        : _lightInputField;
-  }
+  static Color inputFillColor(BuildContext context) =>
+      AppThemeColors.inputFillColor(context);
 
-  static Color chipBackground(BuildContext context, {required bool selected}) {
-    if (!selected) return Colors.transparent;
-    return Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF4C1D95)
-        : _lightChipBg;
-  }
+  static Color chipBackground(BuildContext context, {required bool selected}) =>
+      AppThemeColors.chipBackground(context, selected: selected);
 
-  static Color chipBorderColor(BuildContext context, {required bool selected}) {
-    if (!selected) return Colors.transparent;
-    return Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF7C3AED)
-        : _lightChipBorder;
-  }
+  static Color chipBorderColor(
+    BuildContext context, {
+    required bool selected,
+  }) => AppThemeColors.chipBorderColor(context, selected: selected);
 
-  static Color chipLabelColor(BuildContext context, {required bool selected}) {
-    if (!selected) {
-      return Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
-    }
-    return Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFFC4B5FD)
-        : accentPurple;
-  }
+  static Color chipLabelColor(BuildContext context, {required bool selected}) =>
+      AppThemeColors.chipLabelColor(context, selected: selected);
 
-  static Color themeToggleBackground(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF334155)
-        : const Color(0xFFE0F2FE);
-  }
+  static Color themeToggleBackground(BuildContext context) =>
+      AppThemeColors.themeToggleBackground(context);
 }

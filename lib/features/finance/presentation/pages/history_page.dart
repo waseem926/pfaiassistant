@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:pfaiassistant/core/theme/app_theme.dart';
+import 'package:pfaiassistant/core/theme/app_theme_colors.dart';
 import 'package:pfaiassistant/core/widgets/theme_toggle_button.dart';
 import 'package:pfaiassistant/features/finance/domain/entities/transaction_entity.dart';
 import '../bloc/dashboard/dashboard_bloc.dart';
@@ -158,7 +158,7 @@ class HistoryPage extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 24),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.inputFillColor(context),
+                color: AppThemeColors.inputFillColor(context),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
