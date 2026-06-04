@@ -55,7 +55,7 @@ class _ChatPageState extends State<ChatPage> {
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
           value: dashboardBloc,
-          child: const VoiceInputPage(),
+          child: VoiceInputPage(category: selectedCategory),
         ),
       ),
     );

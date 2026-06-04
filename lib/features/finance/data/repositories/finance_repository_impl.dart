@@ -1,6 +1,7 @@
 import 'package:pfaiassistant/features/finance/data/datasources/finance_local_datasource.dart';
 import 'package:pfaiassistant/features/finance/data/datasources/finance_remote_datasource.dart';
 import '../../domain/entities/chat_message_entity.dart';
+import '../../domain/entities/expense_parse_result.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/repositories/finance_repository.dart';
 
@@ -14,33 +15,47 @@ class FinanceRepositoryImpl implements FinanceRepository {
   final FinanceLocalDataSource localDataSource;
 
   @override
-  Future<ChatMessageEntity> getAIResponse(String prompt) async {
+  Future<ExpenseParseResult> parseExpense(String prompt) async {
     try {
-      final transactionModel = await remoteDataSource.getParsedTransaction(prompt);
+      final transactionModel =
+          await remoteDataSource.getParsedTransaction(prompt);
 
       if (transactionModel.amount > 0) {
-        await localDataSource.saveTransaction(transactionModel);
-
-        return ChatMessageEntity(
-          text:
-              '✅ Recorded ${transactionModel.amount} for ${transactionModel.description}.',
-          role: MessageRole.model,
-          timestamp: DateTime.now(),
-        );
+        return ExpenseParseResult.fromTransaction(transactionModel);
       }
 
-      return ChatMessageEntity(
-        text: "I couldn't find a specific expense in your message.",
-        role: MessageRole.model,
-        timestamp: DateTime.now(),
+      return ExpenseParseResult.failure(
+        "I couldn't find a specific expense in your message.",
       );
     } catch (_) {
+      return ExpenseParseResult.failure(
+        "Sorry, I couldn't process that expense. Please try again.",
+      );
+    }
+  }
+
+  @override
+  Future<ChatMessageEntity> getAIResponse(String prompt) async {
+    final parsed = await parseExpense(prompt);
+
+    if (parsed.success && parsed.transaction != null) {
+      final transaction = parsed.transaction!;
+      await localDataSource.saveTransaction(transaction);
+
       return ChatMessageEntity(
-        text: "Sorry, I couldn't process that expense. Please try again.",
+        text: '✅ Recorded ${transaction.amount} for ${transaction.description}.',
         role: MessageRole.model,
         timestamp: DateTime.now(),
       );
     }
+
+    return ChatMessageEntity(
+      text: parsed.message.isNotEmpty
+          ? parsed.message
+          : "I couldn't find a specific expense in your message.",
+      role: MessageRole.model,
+      timestamp: DateTime.now(),
+    );
   }
 
   @override

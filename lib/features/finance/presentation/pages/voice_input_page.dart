@@ -3,13 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pfaiassistant/core/di/service_locator.dart';
 import 'package:pfaiassistant/core/theme/app_theme.dart';
+import 'package:pfaiassistant/features/finance/domain/entities/transaction_entity.dart';
 import 'package:pfaiassistant/features/finance/domain/repositories/finance_repository.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class VoiceInputPage extends StatefulWidget {
-  const VoiceInputPage({super.key});
+  const VoiceInputPage({super.key, this.category = 'Food'});
+
+  final String category;
 
   @override
   State<VoiceInputPage> createState() => _VoiceInputPageState();
@@ -25,6 +28,8 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
 
   double _parsedAmount = 0;
   String _parsedCategory = '';
+  String _parsedDescription = '';
+  TransactionEntity? _pendingTransaction;
 
   @override
   void initState() {
@@ -90,34 +95,34 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
     setState(() => _isProcessing = true);
 
     try {
-      final result =
-          await serviceLocator<FinanceRepository>().getAIResponse(text);
+      final prompt = '[${widget.category}] ${text.trim()}';
+      final parsed =
+          await serviceLocator<FinanceRepository>().parseExpense(prompt);
       if (!mounted) return;
 
-      final words = result.text.split(' ');
-      final amount = double.tryParse(
-            words.firstWhere(
-              (word) => double.tryParse(word) != null,
-              orElse: () => '0',
-            ),
-          ) ??
-          0;
-
-      setState(() {
-        _isProcessing = false;
-        _parsedAmount = amount;
-        _parsedCategory =
-            words.length > 1 ? words.last.replaceAll('.', '') : '';
-        _showReview = amount > 0;
-      });
-
-      if (amount == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("AI couldn't find an amount. Try again?"),
-          ),
-        );
+      if (parsed.success && parsed.transaction != null) {
+        final transaction = parsed.transaction!;
+        setState(() {
+          _isProcessing = false;
+          _pendingTransaction = transaction;
+          _parsedAmount = transaction.amount;
+          _parsedCategory = transaction.category;
+          _parsedDescription = transaction.description;
+          _showReview = true;
+        });
+        return;
       }
+
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            parsed.message.isNotEmpty
+                ? parsed.message
+                : "AI couldn't find an amount. Try again?",
+          ),
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _isProcessing = false);
@@ -127,7 +132,13 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
     }
   }
 
-  void _onConfirm() {
+  Future<void> _onConfirm() async {
+    final transaction = _pendingTransaction;
+    if (transaction == null) return;
+
+    await serviceLocator<FinanceRepository>().saveTransaction(transaction);
+    if (!mounted) return;
+
     context.read<DashboardBloc>().add(FetchExpensesEvent());
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -351,12 +362,14 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
             ],
           ),
           const SizedBox(height: 20),
-          _buildDataRow(context, 'Amount', _parsedAmount.toString()),
+          _buildDataRow(context, 'Amount', '${_parsedAmount.toInt()} PKR'),
           Divider(
             height: 32,
             color: colorScheme.onSurface.withValues(alpha: 0.12),
           ),
           _buildDataRow(context, 'Category', _parsedCategory, icon: '🛒'),
+          const SizedBox(height: 12),
+          _buildDataRow(context, 'Description', _parsedDescription),
         ],
       ),
     );

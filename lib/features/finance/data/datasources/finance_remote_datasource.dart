@@ -26,9 +26,13 @@ class FinanceRemoteDataSourceImpl implements FinanceRemoteDataSource {
 
     final systemPrompt = '''
 You are a financial assistant. Extract transaction data from the user's text.
-Return ONLY a JSON object with these keys: 'amount', 'category', 'description'.
-Example: { "amount": 500.0, "category": "Food", "description": "Biryani" }
-If no transaction is found, return empty values.
+Return ONLY a JSON object with these keys: "amount", "category", "description".
+Rules:
+- "amount" must be a number greater than 0 when an expense is found
+- "category" must be a short label such as Food, Transport, Bills, Shopping, Entertainment, or Groceries
+- "description" must briefly describe the purchase
+Example: { "amount": 500, "category": "Food", "description": "Biryani" }
+If no transaction is found, return: { "amount": 0, "category": "", "description": "" }
 ${preferredCategory.isNotEmpty ? 'Prefer category: $preferredCategory' : ''}
 ''';
 
