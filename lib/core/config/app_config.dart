@@ -3,10 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Runtime configuration loaded from `.env` (see `.env.example`).
 class AppConfig {
-  AppConfig._({
-    required this.geminiApiKey,
-    required this.apiBaseUrl,
-  });
+  AppConfig._({required this.geminiApiKey, required this.apiBaseUrl});
 
   final String geminiApiKey;
 
@@ -18,13 +15,16 @@ class AppConfig {
   static AppConfig get instance {
     final config = _instance;
     if (config == null) {
-      throw StateError('AppConfig not initialized. Call AppConfig.load() first.');
+      throw StateError(
+        'AppConfig not initialized. Call AppConfig.load() first.',
+      );
     }
     return config;
   }
 
   static Future<AppConfig> load() async {
-    await dotenv.load(fileName: '.env');
+    await dotenv.load(fileName: '.env.example');
+    await dotenv.load(fileName: '.env', isOptional: true);
 
     final geminiApiKey = dotenv.env['GEMINI_API_KEY']?.trim() ?? '';
     final apiBaseUrl = dotenv.env['API_BASE_URL']?.trim() ?? '';
@@ -39,10 +39,7 @@ class AppConfig {
       }
     }
 
-    _instance = AppConfig._(
-      geminiApiKey: geminiApiKey,
-      apiBaseUrl: apiBaseUrl,
-    );
+    _instance = AppConfig._(geminiApiKey: geminiApiKey, apiBaseUrl: apiBaseUrl);
     return _instance!;
   }
 

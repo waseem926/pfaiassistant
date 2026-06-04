@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pfaiassistant/core/di/service_locator.dart';
+import 'package:pfaiassistant/features/finance/presentation/bloc/chat_bloc.dart';
+import 'package:pfaiassistant/features/finance/presentation/bloc/chat_event.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
 import 'package:pfaiassistant/features/finance/presentation/pages/analytics_page.dart';
 import 'package:pfaiassistant/features/finance/presentation/pages/chat_page.dart';
 import 'package:pfaiassistant/features/finance/presentation/pages/history_page.dart';
-import '../../../../core/di/service_locator.dart';
-import '../bloc/chat_bloc.dart';
-import '../bloc/chat_event.dart';
+
 class MainNavigationPage extends StatefulWidget {
   const MainNavigationPage({super.key});
 

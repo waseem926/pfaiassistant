@@ -14,7 +14,9 @@ class FinanceLocalDataSourceImpl implements FinanceLocalDataSource {
 
   @override
   Future<void> saveTransaction(TransactionEntity transaction) async {
-    await database.into(database.transactions).insert(
+    await database
+        .into(database.transactions)
+        .insert(
           TransactionsCompanion.insert(
             amount: transaction.amount,
             category: transaction.category,

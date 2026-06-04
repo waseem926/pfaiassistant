@@ -175,7 +175,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        const labels = {1: '1', 10: '2', 20: '3', 30: '29', 40: '30'};
+                        const labels = {
+                          1: '1',
+                          10: '2',
+                          20: '3',
+                          30: '29',
+                          40: '30',
+                        };
                         final label = labels[value.toInt()];
                         if (label == null) return const SizedBox.shrink();
                         return Text(
@@ -207,11 +213,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                       show: true,
                       getDotPainter: (spot, percent, barData, index) =>
                           FlDotCirclePainter(
-                        radius: 6,
-                        color: const Color(0xFF6366F1),
-                        strokeWidth: 2,
-                        strokeColor: colorScheme.surface,
-                      ),
+                            radius: 6,
+                            color: const Color(0xFF6366F1),
+                            strokeWidth: 2,
+                            strokeColor: colorScheme.surface,
+                          ),
                     ),
                   ),
                 ],
@@ -230,7 +236,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withValues(alpha: isDark ? 0.8 : 0.5),
+        color: colorScheme.primaryContainer.withValues(
+          alpha: isDark ? 0.8 : 0.5,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(

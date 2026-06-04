@@ -96,8 +96,9 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
 
     try {
       final prompt = '[${widget.category}] ${text.trim()}';
-      final parsed =
-          await serviceLocator<FinanceRepository>().parseExpense(prompt);
+      final parsed = await serviceLocator<FinanceRepository>().parseExpense(
+        prompt,
+      );
       if (!mounted) return;
 
       if (parsed.success && parsed.transaction != null) {
@@ -113,6 +114,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
         return;
       }
 
+      if (!mounted) return;
       setState(() => _isProcessing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -183,11 +185,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
                 shape: BoxShape.circle,
                 border: Border.all(color: colorScheme.outline),
               ),
-              child: Icon(
-                Icons.close,
-                color: colorScheme.onSurface,
-                size: 16,
-              ),
+              child: Icon(Icons.close, color: colorScheme.onSurface, size: 16),
             ),
             onPressed: () => Navigator.pop(context),
           ),
@@ -266,10 +264,10 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
         _errorMessage != null
             ? Icons.mic_off
             : _showReview
-                ? Icons.check
-                : _isProcessing
-                    ? Icons.hourglass_top
-                    : Icons.mic,
+            ? Icons.check
+            : _isProcessing
+            ? Icons.hourglass_top
+            : Icons.mic,
         color: _showReview ? Colors.green : colorScheme.surface,
         size: 50,
       ),

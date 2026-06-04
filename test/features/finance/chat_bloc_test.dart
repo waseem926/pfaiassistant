@@ -47,14 +47,13 @@ void main() {
   blocTest<ChatBloc, ChatState>(
     'emits failure when repository throws',
     build: () {
-      when(() => repository.getAIResponse(any())).thenThrow(Exception('network'));
+      when(
+        () => repository.getAIResponse(any()),
+      ).thenThrow(Exception('network'));
       return bloc;
     },
     act: (bloc) => bloc.add(const SendMessageEvent('500 groceries')),
-    expect: () => [
-      isA<ChatLoading>(),
-      isA<ChatFailure>(),
-    ],
+    expect: () => [isA<ChatLoading>(), isA<ChatFailure>()],
   );
 
   blocTest<ChatBloc, ChatState>(

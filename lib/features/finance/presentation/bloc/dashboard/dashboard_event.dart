@@ -7,8 +7,7 @@ abstract class DashboardEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class FetchExpensesEvent extends DashboardEvent { }
-
+class FetchExpensesEvent extends DashboardEvent {}
 
 class SearchTransactionsEvent extends DashboardEvent {
   final String query;

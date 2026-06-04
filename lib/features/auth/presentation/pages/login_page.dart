@@ -33,8 +33,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _loginWithPin() async {
-    final result =
-        await serviceLocator<SecurityService>().verifyPin(_pinController.text);
+    final result = await serviceLocator<SecurityService>().verifyPin(
+      _pinController.text,
+    );
     if (!mounted) return;
 
     if (result.isSuccess) {
@@ -42,9 +43,9 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result.message ?? 'Incorrect PIN')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result.message ?? 'Incorrect PIN')));
   }
 
   @override

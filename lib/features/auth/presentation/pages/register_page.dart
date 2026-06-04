@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/di/service_locator.dart';
+import 'package:pfaiassistant/core/di/service_locator.dart';
 import 'package:pfaiassistant/core/services/security_service.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -14,7 +15,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isConfirming = false;
 
   void _onKeyTap(String val) {
-    if (_pin.length < 4 ) {
+    if (_pin.length < 4) {
       setState(() {
         _pin += val;
       });
@@ -39,7 +40,6 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-
   void _saveAndFinish() async {
     await serviceLocator<SecurityService>().savePin(_pin);
     if (mounted) {
@@ -49,7 +49,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _showError() {
     ScaffoldMessenger.of(context).showSnackBar(
-     const SnackBar(content: Text("PINS do not match. Try again")),
+      const SnackBar(content: Text("PINS do not match. Try again")),
     );
     setState(() {
       _pin = "";
@@ -58,7 +58,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _onDelete() {
-    if(_pin.isNotEmpty) {
+    if (_pin.isNotEmpty) {
       setState(() {
         _pin = _pin.substring(0, _pin.length - 1);
       });
@@ -67,13 +67,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 60),
-            Icon(Icons.lock_outline, size: 64, color: Theme.of(context).primaryColor,),
+            Icon(Icons.lock_outline, size: 64, color: colorScheme.primary),
             const SizedBox(height: 20),
             Text(
               _isConfirming ? 'Confirm your PIN' : 'Create Secure PIN',
@@ -93,21 +95,23 @@ class _RegisterPageState extends State<RegisterPage> {
             _buildKeypad(),
             const SizedBox(height: 40),
           ],
-        )
+        ),
       ),
     );
   }
 
   Widget _buildPinDot(int index) {
-    bool isFilled = _pin.length > index;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isFilled = _pin.length > index;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       height: 20,
       width: 20,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isFilled ? Theme.of(context).primaryColor : Colors.grey[300],
-        border: Border.all(color: Theme.of(context).primaryColor, width: 2),
+        color: isFilled ? colorScheme.primary : Colors.grey[300],
+        border: Border.all(color: colorScheme.primary, width: 2),
       ),
     );
   }
@@ -116,13 +120,13 @@ class _RegisterPageState extends State<RegisterPage> {
     return Column(
       children: [
         for (var row in [
-         ['1', '2', '3'],
+          ['1', '2', '3'],
           ['4', '5', '6'],
           ['7', '8', '9'],
         ])
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-         children: row.map((val) => _buildKey(val)).toList(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: row.map((val) => _buildKey(val)).toList(),
           ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -144,9 +148,15 @@ class _RegisterPageState extends State<RegisterPage> {
         height: 80,
         width: 80,
         alignment: Alignment.center,
-        child: isIcon 
-          ? const Icon(Icons.backspace_outlined, size: 28)
-          : Text(val, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600)),
+        child: isIcon
+            ? const Icon(Icons.backspace_outlined, size: 28)
+            : Text(
+                val,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }

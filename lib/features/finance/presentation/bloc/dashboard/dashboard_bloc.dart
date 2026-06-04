@@ -26,21 +26,22 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       }
 
       final Map<String, double> categories = {};
-      for(var t in transactions) {
-        if(categories.containsKey(t.category)) {
+      for (var t in transactions) {
+        if (categories.containsKey(t.category)) {
           categories[t.category] = categories[t.category]! + t.amount;
         } else {
           categories[t.category] = t.amount;
         }
       }
 
-      emit(DashboardLoaded(
-        transactions: transactions,
-        totalSpending: total,
-        categoryTotals: categories,
-      ));
-
-    } catch(e) {
+      emit(
+        DashboardLoaded(
+          transactions: transactions,
+          totalSpending: total,
+          categoryTotals: categories,
+        ),
+      );
+    } catch (e) {
       emit(const DashboardError("Failed to load dashboard data"));
     }
   }
@@ -49,7 +50,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     SearchTransactionsEvent event,
     Emitter<DashboardState> emit,
   ) async {
-    if(event.query.isEmpty) {
+    if (event.query.isEmpty) {
       add(FetchExpensesEvent());
       return;
     }
@@ -60,13 +61,15 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
       double total = results.fold(0, (sum, t) => sum + t.amount);
 
-      emit(DashboardLoaded(
-        transactions: results,
-         totalSpending: total,
+      emit(
+        DashboardLoaded(
+          transactions: results,
+          totalSpending: total,
           categoryTotals: {},
-          ));
+        ),
+      );
     } catch (e) {
-       emit(DashboardError("Search failed"));
+      emit(DashboardError("Search failed"));
     }
   }
 }

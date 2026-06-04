@@ -48,7 +48,9 @@ class HistoryPage extends StatelessWidget {
               children: [
                 _buildSearchBar(context),
                 _buildFilterChips(context),
-                Expanded(child: _buildTransactionList(context, state.transactions)),
+                Expanded(
+                  child: _buildTransactionList(context, state.transactions),
+                ),
               ],
             );
           }
@@ -103,7 +105,7 @@ class HistoryPage extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: const [
+            children: [
               _FilterChip(label: 'All', isSelected: true),
               _FilterChip(label: 'Groceries', emoji: '🛒'),
               _FilterChip(label: 'Transport', emoji: '🚗'),
@@ -202,11 +204,7 @@ class HistoryPage extends StatelessWidget {
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    this.emoji,
-    this.isSelected = false,
-  });
+  const _FilterChip({required this.label, this.emoji, this.isSelected = false});
 
   final String label;
   final String? emoji;

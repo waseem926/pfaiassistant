@@ -24,7 +24,8 @@ class FinanceRemoteDataSourceImpl implements FinanceRemoteDataSource {
       userPrompt = categoryMatch.group(2) ?? prompt;
     }
 
-    final systemPrompt = '''
+    final systemPrompt =
+        '''
 You are a financial assistant. Extract transaction data from the user's text.
 Return ONLY a JSON object with these keys: "amount", "category", "description".
 Rules:
@@ -42,8 +43,7 @@ ${preferredCategory.isNotEmpty ? 'Prefer category: $preferredCategory' : ''}
     var responseText = response.text ?? '{}';
 
     if (responseText.contains('```')) {
-      responseText =
-          responseText.replaceAll(RegExp(r'```json|```'), '').trim();
+      responseText = responseText.replaceAll(RegExp(r'```json|```'), '').trim();
     }
 
     final startIndex = responseText.indexOf('{');

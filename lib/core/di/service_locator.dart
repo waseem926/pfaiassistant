@@ -22,10 +22,8 @@ Future<void> init() async {
 
   // TODO(Day 3+): swap to Node API when AppConfig.useNodeApi is true.
   serviceLocator.registerLazySingleton(
-    () => GenerativeModel(
-      model: 'gemini-2.5-flash',
-      apiKey: config.geminiApiKey,
-    ),
+    () =>
+        GenerativeModel(model: 'gemini-2.5-flash', apiKey: config.geminiApiKey),
   );
 
   serviceLocator.registerLazySingleton<FinanceRemoteDataSource>(

@@ -18,8 +18,9 @@ class FinanceRepositoryImpl implements FinanceRepository {
   @override
   Future<ExpenseParseResult> parseExpense(String prompt) async {
     try {
-      final transactionModel =
-          await remoteDataSource.getParsedTransaction(prompt);
+      final transactionModel = await remoteDataSource.getParsedTransaction(
+        prompt,
+      );
       final validationError = TransactionValidator.validationError(
         transactionModel,
       );
@@ -45,7 +46,8 @@ class FinanceRepositoryImpl implements FinanceRepository {
       await localDataSource.saveTransaction(transaction);
 
       return ChatMessageEntity(
-        text: '✅ Recorded ${transaction.amount} for ${transaction.description}.',
+        text:
+            '✅ Recorded ${transaction.amount} for ${transaction.description}.',
         role: MessageRole.model,
         timestamp: DateTime.now(),
       );

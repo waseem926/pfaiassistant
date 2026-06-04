@@ -13,14 +13,11 @@ import 'package:pfaiassistant/features/auth/presentation/pages/register_page.dar
 import 'package:pfaiassistant/features/auth/presentation/pages/splash_page.dart';
 
 Future<void> main() async {
-  await runAppSafely(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
-      await AppConfig.load();
-      await di.init();
-    },
-    const MyApp(),
-  );
+  await runAppSafely(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await AppConfig.load();
+    await di.init();
+  }, const MyApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -93,9 +93,9 @@ class _ChatPageState extends State<ChatPage> {
           listenWhen: (previous, current) => current is ChatFailure,
           listener: (context, state) {
             if (state is ChatFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.error)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.error)));
             }
           },
           child: Padding(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pfaiassistant/core/di/service_locator.dart';
 import 'package:pfaiassistant/core/services/security_service.dart';
-import '../../../../core/di/service_locator.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -20,7 +20,8 @@ class _SplashPageState extends State<SplashPage> {
     // 1. Wait for 3 seconds
     await Future.delayed(const Duration(seconds: 3));
 
-    final bool registered = await serviceLocator<SecurityService>().isRegistered();
+    final bool registered = await serviceLocator<SecurityService>()
+        .isRegistered();
 
     if (mounted) {
       if (registered) {

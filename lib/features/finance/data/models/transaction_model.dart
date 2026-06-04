@@ -14,7 +14,10 @@ class TransactionModel extends TransactionEntity {
       id: 'temp_${DateTime.now().microsecondsSinceEpoch}',
       amount: _parseAmount(json['amount']),
       category: _parseString(json['category'], fallback: 'General'),
-      description: _parseString(json['description'], fallback: 'No description'),
+      description: _parseString(
+        json['description'],
+        fallback: 'No description',
+      ),
       date: DateTime.now(),
     );
   }

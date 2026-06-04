@@ -32,10 +32,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       final expenseRecorded = aiResponse.text.startsWith('✅');
 
       emit(
-        ChatSuccess(
-          [...withUserMessage, aiResponse],
-          expenseRecorded: expenseRecorded,
-        ),
+        ChatSuccess([
+          ...withUserMessage,
+          aiResponse,
+        ], expenseRecorded: expenseRecorded),
       );
     } catch (e) {
       emit(ChatFailure(withUserMessage, e.toString()));

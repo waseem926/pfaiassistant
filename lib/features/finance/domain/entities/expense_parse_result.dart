@@ -16,9 +16,6 @@ class ExpenseParseResult {
   }
 
   factory ExpenseParseResult.fromTransaction(TransactionEntity transaction) {
-    return ExpenseParseResult(
-      success: true,
-      transaction: transaction,
-    );
+    return ExpenseParseResult(success: true, transaction: transaction);
   }
 }

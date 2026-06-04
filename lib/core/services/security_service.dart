@@ -5,8 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SecurityService {
   SecurityService({FlutterSecureStorage? storage, LocalAuthentication? auth})
-      : _storage = storage ?? const FlutterSecureStorage(),
-        _auth = auth ?? LocalAuthentication();
+    : _storage = storage ?? const FlutterSecureStorage(),
+      _auth = auth ?? LocalAuthentication();
 
   final FlutterSecureStorage _storage;
   final LocalAuthentication _auth;
@@ -35,7 +35,9 @@ class SecurityService {
 
     final savedPin = await _storage.read(key: _pinKey);
     if (savedPin == null) {
-      return PinVerificationResult.invalid('No PIN found. Please register again.');
+      return PinVerificationResult.invalid(
+        'No PIN found. Please register again.',
+      );
     }
 
     final isValid = _verifyStoredPin(enteredPin, savedPin);
@@ -62,7 +64,9 @@ class SecurityService {
     await prefs.setInt(_failedAttemptsKey, attempts);
 
     if (attempts >= _maxAttempts) {
-      final lockUntil = DateTime.now().add(_lockoutDuration).millisecondsSinceEpoch;
+      final lockUntil = DateTime.now()
+          .add(_lockoutDuration)
+          .millisecondsSinceEpoch;
       await prefs.setInt(_lockUntilKey, lockUntil);
       await prefs.setInt(_failedAttemptsKey, 0);
       return PinVerificationResult.locked(
@@ -71,7 +75,9 @@ class SecurityService {
     }
 
     final remaining = _maxAttempts - attempts;
-    return PinVerificationResult.invalid('Incorrect PIN. $remaining attempts left.');
+    return PinVerificationResult.invalid(
+      'Incorrect PIN. $remaining attempts left.',
+    );
   }
 
   Future<String?> _lockoutMessage() async {
@@ -81,7 +87,10 @@ class SecurityService {
 
     final lockUntil = DateTime.fromMillisecondsSinceEpoch(lockUntilMs);
     if (DateTime.now().isBefore(lockUntil)) {
-      final seconds = lockUntil.difference(DateTime.now()).inSeconds.clamp(1, 999);
+      final seconds = lockUntil
+          .difference(DateTime.now())
+          .inSeconds
+          .clamp(1, 999);
       return 'Too many failed attempts. Try again in $seconds seconds.';
     }
 

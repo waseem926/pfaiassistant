@@ -14,7 +14,6 @@ class Transactions extends Table {
   DateTimeColumn get date => dateTime()();
 }
 
-
 @DriftDatabase(tables: [Transactions])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -24,18 +23,19 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onUpgrade: (migrator, from, to) async {
-          // Add future schema migrations here when schemaVersion increases.
-        },
-      );
+    onUpgrade: (migrator, from, to) async {
+      // Add future schema migrations here when schemaVersion increases.
+    },
+  );
 
   Future<List<Transaction>> getAllTransactions() => select(transactions).get();
-  Future<int> insertTransaction(TransactionsCompanion entry) => into(transactions).insert(entry);
+  Future<int> insertTransaction(TransactionsCompanion entry) =>
+      into(transactions).insert(entry);
 
   Future<List<Transaction>> searchTransactions(String query) {
-    return (select(transactions)
-           ..where((t) => t.description.contains(query.toLowerCase())))
-           .get();
+    return (select(
+      transactions,
+    )..where((t) => t.description.contains(query.toLowerCase()))).get();
   }
 }
 

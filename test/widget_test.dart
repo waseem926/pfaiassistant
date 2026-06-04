@@ -10,9 +10,7 @@ void main() {
       MaterialApp(
         home: BlocProvider(
           create: (_) => ThemeCubit(),
-          child: const Scaffold(
-            body: ThemeToggleButton(),
-          ),
+          child: const Scaffold(body: ThemeToggleButton()),
         ),
       ),
     );
