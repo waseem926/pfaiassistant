@@ -109,7 +109,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.grey.shade300),
               ),
-              child: const Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface, size: 16),
+              child: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface, size: 16),
             ),
             onPressed: () => Navigator.pop(context), 
           ),
@@ -208,7 +208,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
         children: [
           Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
           const SizedBox(height: 12),
-          Text(content, style: const TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface87)),
+          Text(content, style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
         ],
       ),
     );
@@ -234,7 +234,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
           ),
           const SizedBox(height: 20),
           _buildDataRow("Amount", _detectedAmount),
-          const Divider(height: 32, color: Theme.of(context).colorScheme.onSurface12),
+          Divider(height: 32, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12)),
           _buildDataRow("Category", _detectedCategory, icon: "🛒"),
         ],
       ),
@@ -268,7 +268,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
               side: BorderSide(color: Colors.grey.shade200),
             ),
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            child: Text("Cancel", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
           ),
         ),
         const SizedBox(width: 16),
@@ -282,8 +282,8 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
             onPressed: () {
               Navigator.pop(context);
             },
-            icon: const Icon(Icons.check, color: Theme.of(context).colorScheme.surface, size: 18),
-            label: const Text("Confirm", style: TextStyle(color: Theme.of(context).colorScheme.surface, fontWeight: FontWeight.bold)),
+            icon: Icon(Icons.check, color: Theme.of(context).colorScheme.surface, size: 18),
+            label: Text("Confirm", style: TextStyle(color: Theme.of(context).colorScheme.surface, fontWeight: FontWeight.bold)),
             ),
           ),
       ],

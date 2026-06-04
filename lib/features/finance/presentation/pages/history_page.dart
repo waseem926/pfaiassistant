@@ -15,8 +15,8 @@ class HistoryPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
-        title: const Text("History", style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 24)),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.dark_mode_outlined, color: Theme.of(context).colorScheme.onSurface,))],
+        title: Text("History", style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 24)),
+        actions: [IconButton(onPressed: () {}, icon: Icon(Icons.dark_mode_outlined, color: Theme.of(context).colorScheme.onSurface))],
         ),
         body: BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
