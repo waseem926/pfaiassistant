@@ -1,4 +1,4 @@
-import '../../domain/entities/transaction_entity.dart';
+import 'transaction_entity.dart';
 
 class ExpenseParseResult {
   const ExpenseParseResult({

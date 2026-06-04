@@ -78,7 +78,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           ),
         ],
       ),
-      actions: const [ThemeToggleButton()],
+      actions: [ThemeToggleButton()],
     );
   }
 

@@ -7,7 +7,7 @@ import 'package:pfaiassistant/core/theme/app_theme.dart';
 import 'package:pfaiassistant/core/utils/app_bootstrap.dart';
 import 'package:pfaiassistant/features/finance/presentation/pages/main_navigation_page.dart';
 import 'package:pfaiassistant/features/settings/presentation/bloc/theme_cubit.dart';
-import 'core/di/service_locator.dart' as di;
+import 'package:pfaiassistant/core/di/service_locator.dart' as di;
 import 'package:pfaiassistant/features/auth/presentation/pages/login_page.dart';
 import 'package:pfaiassistant/features/auth/presentation/pages/register_page.dart';
 import 'package:pfaiassistant/features/auth/presentation/pages/splash_page.dart';

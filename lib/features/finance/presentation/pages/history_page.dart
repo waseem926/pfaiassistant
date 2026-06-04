@@ -28,7 +28,7 @@ class HistoryPage extends StatelessWidget {
             fontSize: 24,
           ),
         ),
-        actions: const [ThemeToggleButton()],
+        actions: [ThemeToggleButton()],
       ),
       body: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {

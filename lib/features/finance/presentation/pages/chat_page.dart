@@ -5,9 +5,9 @@ import 'package:pfaiassistant/core/widgets/theme_toggle_button.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
 import 'package:pfaiassistant/features/finance/presentation/pages/voice_input_page.dart';
-import '../bloc/chat_bloc.dart';
-import '../bloc/chat_event.dart';
-import '../bloc/chat_state.dart';
+import 'package:pfaiassistant/features/finance/presentation/bloc/chat_bloc.dart';
+import 'package:pfaiassistant/features/finance/presentation/bloc/chat_event.dart';
+import 'package:pfaiassistant/features/finance/presentation/bloc/chat_state.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -78,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: const [ThemeToggleButton()],
+        actions: [ThemeToggleButton()],
       ),
       body: BlocListener<ChatBloc, ChatState>(
         listenWhen: (previous, current) =>
