@@ -48,11 +48,13 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _openVoiceInput() {
+    final dashboardBloc = context.read<DashboardBloc>();
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: context.read<DashboardBloc>(),
+        builder: (_) => BlocProvider.value(
+          value: dashboardBloc,
           child: const VoiceInputPage(),
         ),
       ),

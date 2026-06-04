@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pfaiassistant/core/di/service_locator.dart';
 import 'package:pfaiassistant/core/theme/app_theme.dart';
 import 'package:pfaiassistant/features/finance/domain/repositories/finance_repository.dart';
@@ -20,6 +21,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
   String _words = '';
   bool _isProcessing = false;
   bool _showReview = false;
+  String? _errorMessage;
 
   double _parsedAmount = 0;
   String _parsedCategory = '';
@@ -30,13 +32,46 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
     _startListening();
   }
 
-  Future<void> _startListening() async {
-    final available = await _speech.initialize();
-    if (!mounted || !available) return;
+  @override
+  void dispose() {
+    _speech.stop();
+    super.dispose();
+  }
 
-    setState(() => _isListening = true);
+  Future<bool> _ensureMicrophonePermission() async {
+    final status = await Permission.microphone.request();
+    return status.isGranted;
+  }
+
+  Future<void> _startListening() async {
+    final hasPermission = await _ensureMicrophonePermission();
+    if (!mounted) return;
+
+    if (!hasPermission) {
+      setState(() {
+        _errorMessage = 'Microphone permission is required for voice input.';
+      });
+      return;
+    }
+
+    final available = await _speech.initialize();
+    if (!mounted) return;
+
+    if (!available) {
+      setState(() {
+        _errorMessage = 'Speech recognition is not available on this device.';
+      });
+      return;
+    }
+
+    setState(() {
+      _errorMessage = null;
+      _isListening = true;
+    });
+
     _speech.listen(
       onResult: (result) {
+        if (!mounted) return;
         setState(() {
           _words = result.recognizedWords;
           if (result.finalResult) {
@@ -45,10 +80,13 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
           }
         });
       },
+      listenOptions: stt.SpeechListenOptions(partialResults: true),
     );
   }
 
   Future<void> _processWithAI(String text) async {
+    if (text.trim().isEmpty) return;
+
     setState(() => _isProcessing = true);
 
     try {
@@ -101,6 +139,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
   }
 
   String get _statusTitle {
+    if (_errorMessage != null) return 'Unavailable';
     if (_isProcessing) return 'Processing';
     if (_showReview) return 'Got it';
     if (_isListening) return 'Listening';
@@ -108,10 +147,11 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
   }
 
   String get _statusSubtitle {
+    if (_errorMessage != null) return _errorMessage!;
     if (_isProcessing) return 'Analyzing your expense';
     if (_showReview) return 'Review your expense';
     if (_isListening) return 'Speak naturally';
-    return 'Tap the mic to try again';
+    return 'Tap below to try again';
   }
 
   @override
@@ -157,6 +197,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
@@ -165,11 +206,12 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 16,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 40),
             if (_isProcessing)
               const CircularProgressIndicator()
-            else if (!_showReview)
+            else if (!_showReview && _errorMessage == null)
               _buildWaveform(context),
             const SizedBox(height: 40),
             _buildInfoCard(
@@ -180,6 +222,14 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
             const SizedBox(height: 20),
             if (_showReview) _buildDetectedCard(context),
             const Spacer(),
+            if (_errorMessage != null)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _startListening,
+                  child: const Text('Try again'),
+                ),
+              ),
             if (_showReview) _buildActionButtons(context),
             const SizedBox(height: 40),
           ],
@@ -202,11 +252,13 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
             : colorScheme.onSurface,
       ),
       child: Icon(
-        _showReview
-            ? Icons.check
-            : _isProcessing
-                ? Icons.hourglass_top
-                : Icons.mic,
+        _errorMessage != null
+            ? Icons.mic_off
+            : _showReview
+                ? Icons.check
+                : _isProcessing
+                    ? Icons.hourglass_top
+                    : Icons.mic,
         color: _showReview ? Colors.green : colorScheme.surface,
         size: 50,
       ),
