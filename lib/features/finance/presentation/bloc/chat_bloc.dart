@@ -5,36 +5,42 @@ import 'chat_event.dart';
 import 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  final FinanceRepository repository;
-
   ChatBloc({required this.repository}) : super(const ChatInitial()) {
     on<LoadChatHistoryEvent>(_onLoadChatHistory);
-    on<SendMessageEvent>(_onSendMessage); 
+    on<SendMessageEvent>(_onSendMessage);
   }
 
-Future<void> _onSendMessage(SendMessageEvent event, Emitter<ChatState> emit) async {
-  // Always work with a fresh copy of the PREVIOUS list
-  final List<ChatMessageEntity> currentMessages = List.from(state.messages);
+  final FinanceRepository repository;
 
-  final userMsg = ChatMessageEntity(
-    text: event.message,
-    role: MessageRole.user,
-    timestamp: DateTime.now(),
-  );
+  Future<void> _onSendMessage(
+    SendMessageEvent event,
+    Emitter<ChatState> emit,
+  ) async {
+    final currentMessages = List<ChatMessageEntity>.from(state.messages);
 
-  final List<ChatMessageEntity> step1Messages = [...currentMessages, userMsg];
-  emit(ChatLoading(step1Messages));
+    final userMsg = ChatMessageEntity(
+      text: event.message,
+      role: MessageRole.user,
+      timestamp: DateTime.now(),
+    );
 
-  try {
-    final aiResponse = await repository.getAIResponse(event.message);
-    
-    // Merge the AI response into the list that already has the user message
-    final List<ChatMessageEntity> step2Messages = [...step1Messages, aiResponse];
-    emit(ChatSuccess(step2Messages));
-  } catch (e) {
-    emit(ChatFailure(step1Messages, e.toString()));
+    final withUserMessage = [...currentMessages, userMsg];
+    emit(ChatLoading(withUserMessage));
+
+    try {
+      final aiResponse = await repository.getAIResponse(event.message);
+      final expenseRecorded = aiResponse.text.startsWith('✅');
+
+      emit(
+        ChatSuccess(
+          [...withUserMessage, aiResponse],
+          expenseRecorded: expenseRecorded,
+        ),
+      );
+    } catch (e) {
+      emit(ChatFailure(withUserMessage, e.toString()));
+    }
   }
-}
 
   Future<void> _onLoadChatHistory(
     LoadChatHistoryEvent event,
@@ -45,15 +51,19 @@ Future<void> _onSendMessage(SendMessageEvent event, Emitter<ChatState> emit) asy
     try {
       final transactions = await repository.getAllTransactions();
 
-      final historyMessages = transactions.map((t) => ChatMessageEntity(
-            text: "✅ Recorded ${t.amount} for ${t.description}.",
-            role: MessageRole.model,
-            timestamp: t.date,
-          )).toList();
+      final historyMessages = transactions
+          .map(
+            (t) => ChatMessageEntity(
+              text: '✅ Recorded ${t.amount} for ${t.description}.',
+              role: MessageRole.model,
+              timestamp: t.date,
+            ),
+          )
+          .toList();
 
       emit(ChatSuccess(historyMessages));
     } catch (e) {
-      emit(ChatFailure(state.messages, "Failed to load history: $e"));
+      emit(ChatFailure(state.messages, 'Failed to load history: $e'));
     }
   }
 }

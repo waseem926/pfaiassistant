@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pfaiassistant/core/theme/app_theme.dart';
+import 'package:pfaiassistant/core/widgets/theme_toggle_button.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
 import 'package:pfaiassistant/features/finance/presentation/pages/voice_input_page.dart';
-import 'package:pfaiassistant/features/settings/presentation/bloc/theme_cubit.dart';
 import '../bloc/chat_bloc.dart';
 import '../bloc/chat_event.dart';
 import '../bloc/chat_state.dart';
@@ -35,186 +36,180 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _submitExpense() {
-    if (_controller.text.isNotEmpty) {
-      final fullMessage = "[$selectedCategory] ${_controller.text}";
-      context.read<ChatBloc>().add(SendMessageEvent(fullMessage));
-      _controller.clear();
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Recording $selectedCategory expense..."),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    if (_controller.text.isEmpty) return;
+
+    final fullMessage = '[$selectedCategory] ${_controller.text}';
+    context.read<ChatBloc>().add(SendMessageEvent(fullMessage));
+    _controller.clear();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Recording $selectedCategory expense...')),
+    );
+  }
+
+  void _openVoiceInput() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: context.read<DashboardBloc>(),
+          child: const VoiceInputPage(),
         ),
-      );
-    }
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         centerTitle: true,
         title: Text(
           'Add Expense',
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFE0F2FE),
-            ),
-            child: IconButton(
-              onPressed: () => context.read<ThemeCubit>().toggleTheme(),
-              icon: Icon(
-                Icons.dark_mode_outlined,
-                color: Theme.of(context).colorScheme.onSurface,
-                size: 20,
-              ),
-            ),
-          ),
-        ],
+        actions: const [ThemeToggleButton()],
       ),
       body: BlocListener<ChatBloc, ChatState>(
+        listenWhen: (previous, current) =>
+            current is ChatSuccess && current.expenseRecorded,
         listener: (context, state) {
-          if (state is ChatSuccess) {
-
-            context.read<DashboardBloc>().add(FetchExpensesEvent());
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-              content: Text("Recorded Successfully..."),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-      );
-          }
+          context.read<DashboardBloc>().add(FetchExpensesEvent());
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Expense recorded successfully')),
+          );
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(
-                child: Text("Type naturally or use voice",
-                    style: TextStyle(color: Colors.grey, fontSize: 13)),
-              ),
-              const SizedBox(height: 24),
-
-              // 1. SEARCH/TEXT INPUT
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8F9FA),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: TextField(
-                  controller: _controller,
-                  decoration: const InputDecoration(
-                    hintText: "500 for groceries",
-                    border: InputBorder.none,
-                    hintStyle: TextStyle(color: Colors.grey),
+        child: BlocListener<ChatBloc, ChatState>(
+          listenWhen: (previous, current) => current is ChatFailure,
+          listener: (context, state) {
+            if (state is ChatFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.error)),
+              );
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Text(
+                    'Type naturally or use voice',
+                    style: TextStyle(
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // 2. CATEGORY GRID
-              const Text("CATEGORY",
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.inputFillColor(context),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: TextField(
+                    controller: _controller,
+                    style: TextStyle(color: colorScheme.onSurface),
+                    decoration: const InputDecoration(
+                      hintText: '500 for groceries',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  'CATEGORY',
                   style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                      letterSpacing: 1.1)),
-              const SizedBox(height: 16),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    letterSpacing: 1.1,
+                  ),
                 ),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final cat = categories[index];
-                  return _CategoryItem(
-                    label: cat['label']!,
-                    icon: cat['icon']!,
-                    isSelected: selectedCategory == cat['label'],
-                    onTap: () => setState(() => selectedCategory = cat['label']!),
-                  );
-                },
-              ),
-
-              const Spacer(),
-              
-              // LOADING INDICATOR
-              BlocBuilder<ChatBloc, ChatState>(
-                builder: (context, state) {
-                  if (state is ChatLoading) {
-                    return const Padding(
-                    padding: EdgeInsets.only(bottom: 8.0),
-                    child: LinearProgressIndicator(),
-                  );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-
-              // 3. ACTION BUTTONS (Add & Voice)
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9E9E9E),
-                        foregroundColor: Theme.of(context).colorScheme.surface,
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                      ),
-                      onPressed: _submitExpense,
-                      icon: const Icon(Icons.add),
-                      label: const Text("Add Expense",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
+                const SizedBox(height: 16),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
                   ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const VoiceInputPage(),
-                        ),
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    final cat = categories[index];
+                    return _CategoryItem(
+                      label: cat['label']!,
+                      icon: cat['icon']!,
+                      isSelected: selectedCategory == cat['label'],
+                      onTap: () =>
+                          setState(() => selectedCategory = cat['label']!),
+                    );
+                  },
+                ),
+                const Spacer(),
+                BlocBuilder<ChatBloc, ChatState>(
+                  builder: (context, state) {
+                    if (state is ChatLoading) {
+                      return const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: LinearProgressIndicator(),
                       );
-                    },
-                    child: Container(
-                      height: 56,
-                      width: 56,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        Icons.mic_none,
-                        color: Theme.of(context).colorScheme.onSurface,
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: _submitExpense,
+                        icon: const Icon(Icons.add),
+                        label: const Text(
+                          'Add Expense',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
-            ],
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: _openVoiceInput,
+                      child: Container(
+                        height: 56,
+                        width: 56,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: colorScheme.outline),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          Icons.mic_none,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),
@@ -223,17 +218,17 @@ class _ChatPageState extends State<ChatPage> {
 }
 
 class _CategoryItem extends StatelessWidget {
-  final String label;
-  final String icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-
   const _CategoryItem({
     required this.label,
     required this.icon,
     required this.isSelected,
     required this.onTap,
   });
+
+  final String label;
+  final String icon;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -242,10 +237,10 @@ class _CategoryItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFF3E8FF) : Colors.transparent,
+          color: AppTheme.chipBackground(context, selected: isSelected),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFFD8B4FE) : Colors.transparent,
+            color: AppTheme.chipBorderColor(context, selected: isSelected),
             width: 1.5,
           ),
         ),
@@ -254,12 +249,14 @@ class _CategoryItem extends StatelessWidget {
           children: [
             Text(icon, style: const TextStyle(fontSize: 28)),
             const SizedBox(height: 8),
-            Text(label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? const Color(0xFF7C3AED) : Colors.grey[600],
-                )),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: AppTheme.chipLabelColor(context, selected: isSelected),
+              ),
+            ),
           ],
         ),
       ),

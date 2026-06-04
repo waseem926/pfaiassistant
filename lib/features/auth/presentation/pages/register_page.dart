@@ -76,7 +76,7 @@ class _RegisterPageState extends State<RegisterPage> {
             Icon(Icons.lock_outline, size: 64, color: Theme.of(context).primaryColor,),
             const SizedBox(height: 20),
             Text(
-              _isConfirming ? "Confim your PIN" : "Create Secure PIN",
+              _isConfirming ? 'Confirm your PIN' : 'Create Secure PIN',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),

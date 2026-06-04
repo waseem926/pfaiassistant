@@ -53,5 +53,7 @@ Future<void> init() async {
 
   serviceLocator.registerLazySingleton(() => AuthService());
 
-  serviceLocator.registerLazySingleton(() => ThemeCubit());
+  final themeCubit = ThemeCubit();
+  await themeCubit.loadSavedTheme();
+  serviceLocator.registerSingleton<ThemeCubit>(themeCubit);
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pfaiassistant/core/di/service_locator.dart';
+import 'package:pfaiassistant/core/theme/app_theme.dart';
 import 'package:pfaiassistant/features/finance/domain/repositories/finance_repository.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:pfaiassistant/features/finance/presentation/bloc/dashboard/dashboard_event.dart';
@@ -67,7 +68,8 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
       setState(() {
         _isProcessing = false;
         _parsedAmount = amount;
-        _parsedCategory = words.isNotEmpty ? words.last.replaceAll('.', '') : '';
+        _parsedCategory =
+            words.length > 1 ? words.last.replaceAll('.', '') : '';
         _showReview = amount > 0;
       });
 
@@ -114,10 +116,12 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: const SizedBox(),
         actions: [
@@ -126,11 +130,11 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: colorScheme.outline),
               ),
               child: Icon(
                 Icons.close,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: colorScheme.onSurface,
                 size: 16,
               ),
             ),
@@ -144,32 +148,39 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            Center(child: _buildStatusIcon()),
+            Center(child: _buildStatusIcon(context)),
             const SizedBox(height: 40),
             Text(
               _statusTitle,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               _statusSubtitle,
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
+              style: TextStyle(
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 40),
             if (_isProcessing)
               const CircularProgressIndicator()
             else if (!_showReview)
-              _buildWaveform(),
+              _buildWaveform(context),
             const SizedBox(height: 40),
             _buildInfoCard(
+              context,
               title: 'TRANSCRIPT',
               content: _words.isEmpty ? '...' : _words,
-              backgroundColor: const Color(0xFFF8F9FA),
             ),
             const SizedBox(height: 20),
-            if (_showReview) _buildDetectedCard(),
+            if (_showReview) _buildDetectedCard(context),
             const Spacer(),
-            if (_showReview) _buildActionButtons(),
+            if (_showReview) _buildActionButtons(context),
             const SizedBox(height: 40),
           ],
         ),
@@ -177,7 +188,9 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
     );
   }
 
-  Widget _buildStatusIcon() {
+  Widget _buildStatusIcon(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       height: 120,
@@ -185,8 +198,8 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: _showReview
-            ? const Color(0xFFF8F5E9)
-            : Theme.of(context).colorScheme.onSurface,
+            ? colorScheme.primaryContainer
+            : colorScheme.onSurface,
       ),
       child: Icon(
         _showReview
@@ -194,15 +207,15 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
             : _isProcessing
                 ? Icons.hourglass_top
                 : Icons.mic,
-        color: _showReview
-            ? Colors.green
-            : Theme.of(context).colorScheme.surface,
+        color: _showReview ? Colors.green : colorScheme.surface,
         size: 50,
       ),
     );
   }
 
-  Widget _buildWaveform() {
+  Widget _buildWaveform(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(15, (index) {
@@ -211,7 +224,7 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
           width: 4,
           height: index.isEven ? 20 : 40,
           decoration: BoxDecoration(
-            color: Colors.grey.shade300,
+            color: colorScheme.outline,
             borderRadius: BorderRadius.circular(2),
           ),
         );
@@ -219,16 +232,18 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
     );
   }
 
-  Widget _buildInfoCard({
+  Widget _buildInfoCard(
+    BuildContext context, {
     required String title,
     required String content,
-    required Color backgroundColor,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: AppTheme.inputFillColor(context),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -236,9 +251,9 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: Colors.grey,
+              color: colorScheme.onSurface.withValues(alpha: 0.6),
               fontWeight: FontWeight.bold,
               letterSpacing: 1.1,
             ),
@@ -246,65 +261,84 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
           const SizedBox(height: 12),
           Text(
             content,
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+            style: TextStyle(fontSize: 18, color: colorScheme.onSurface),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDetectedCard() {
+  Widget _buildDetectedCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3E8FF),
+        color: AppTheme.chipBackground(context, selected: true),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppTheme.chipBorderColor(context, selected: true),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.circle, color: Colors.green, size: 8),
-              SizedBox(width: 8),
+              const Icon(Icons.circle, color: Colors.green, size: 8),
+              const SizedBox(width: 8),
               Text(
                 'DETECTED',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey,
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          _buildDataRow('Amount', _parsedAmount.toString()),
+          _buildDataRow(context, 'Amount', _parsedAmount.toString()),
           Divider(
             height: 32,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
+            color: colorScheme.onSurface.withValues(alpha: 0.12),
           ),
-          _buildDataRow('Category', _parsedCategory, icon: '🛒'),
+          _buildDataRow(context, 'Category', _parsedCategory, icon: '🛒'),
         ],
       ),
     );
   }
 
-  Widget _buildDataRow(String label, String value, {String? icon}) {
+  Widget _buildDataRow(
+    BuildContext context,
+    String label,
+    String value, {
+    String? icon,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 16)),
+        Text(
+          label,
+          style: TextStyle(
+            color: colorScheme.onSurface.withValues(alpha: 0.6),
+            fontSize: 16,
+          ),
+        ),
         Row(
           children: [
             if (icon != null) Text(icon, style: const TextStyle(fontSize: 18)),
             if (icon != null) const SizedBox(width: 8),
             Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: colorScheme.onSurface,
+              ),
             ),
           ],
         ),
@@ -312,7 +346,9 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Expanded(
@@ -322,12 +358,12 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              side: BorderSide(color: Colors.grey.shade200),
+              side: BorderSide(color: colorScheme.outline),
             ),
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              style: TextStyle(color: colorScheme.onSurface),
             ),
           ),
         ),
@@ -335,24 +371,18 @@ class _VoiceInputPageState extends State<VoiceInputPage> {
         Expanded(
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.onSurface,
+              backgroundColor: colorScheme.onSurface,
+              foregroundColor: colorScheme.surface,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
             onPressed: _onConfirm,
-            icon: Icon(
-              Icons.check,
-              color: Theme.of(context).colorScheme.surface,
-              size: 18,
-            ),
-            label: Text(
+            icon: const Icon(Icons.check, size: 18),
+            label: const Text(
               'Confirm',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.surface,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ),

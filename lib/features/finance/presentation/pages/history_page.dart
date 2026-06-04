@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:pfaiassistant/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:pfaiassistant/core/theme/app_theme.dart';
+import 'package:pfaiassistant/core/widgets/theme_toggle_button.dart';
+import 'package:pfaiassistant/features/finance/domain/entities/transaction_entity.dart';
 import '../bloc/dashboard/dashboard_bloc.dart';
 import '../bloc/dashboard/dashboard_event.dart';
 import '../bloc/dashboard/dashboard_state.dart';
@@ -11,95 +13,142 @@ class HistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
-        title: Text("History", style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 24)),
-        actions: [
-          IconButton(
-            onPressed: () => context.read<ThemeCubit>().toggleTheme(),
-            icon: Icon(Icons.dark_mode_outlined, color: Theme.of(context).colorScheme.onSurface),
+        title: Text(
+          'History',
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
-        ],
         ),
-        body: BlocBuilder<DashboardBloc, DashboardState>(
-          builder: (context, state) {
-            if (state is DashboardLoaded) {
-              return Column(
-                children: [
-                  _buildSearchBar(context),
-                  _buildFilterChips(),
-                  Expanded(child: _buildTransactionList(state.transactions)),
-                ],
+        actions: const [ThemeToggleButton()],
+      ),
+      body: BlocBuilder<DashboardBloc, DashboardState>(
+        builder: (context, state) {
+          if (state is DashboardLoaded) {
+            if (state.transactions.isEmpty) {
+              return Center(
+                child: Text(
+                  'No transactions yet',
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
               );
             }
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
+
+            return Column(
+              children: [
+                _buildSearchBar(context),
+                _buildFilterChips(context),
+                Expanded(child: _buildTransactionList(context, state.transactions)),
+              ],
+            );
+          }
+
+          if (state is DashboardError) {
+            return Center(child: Text(state.message));
+          }
+
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
-
 
   Widget _buildSearchBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: TextField(
-        onChanged: (value) => context.read<DashboardBloc>().add(SearchTransactionsEvent(value)),
-        decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.search),
-          hintText: "Search transactions",
-          filled: true,
-          fillColor: const Color(0xFFF8F9FA),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-          ),
+        onChanged: (value) =>
+            context.read<DashboardBloc>().add(SearchTransactionsEvent(value)),
+        decoration: const InputDecoration(
+          prefixIcon: Icon(Icons.search),
+          hintText: 'Search transactions',
         ),
-      );
-  } 
+      ),
+    );
+  }
 
-  Widget _buildFilterChips() {
+  Widget _buildFilterChips(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       height: 180,
       margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade100), borderRadius: BorderRadius.circular(24)),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outline),
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("CATEGORY", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+          Text(
+            'CATEGORY',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-               _FilterChip(label: "All", isSelected: true),
-               _FilterChip(label: "Groceries" , emoji: "🛒"),
-               _FilterChip(label: "Transport", emoji: "🚗"),
-               _FilterChip(label: "Bills" , emoji: "💡"),
-               _FilterChip(label: "Food", emoji: "🍔"),
+            children: const [
+              _FilterChip(label: 'All', isSelected: true),
+              _FilterChip(label: 'Groceries', emoji: '🛒'),
+              _FilterChip(label: 'Transport', emoji: '🚗'),
+              _FilterChip(label: 'Bills', emoji: '💡'),
+              _FilterChip(label: 'Food', emoji: '🍔'),
             ],
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTransactionList(List transactions) {
+  Widget _buildTransactionList(
+    BuildContext context,
+    List<TransactionEntity> transactions,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final t = transactions[index];
-        final dateStr = DateFormat("MMM d, yyyy").format(t.date).toUpperCase();
+        final dateStr = DateFormat('MMM d, yyyy').format(t.date).toUpperCase();
 
         return Column(
           children: [
             Row(
               children: [
-                Text(dateStr, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                Text(
+                  dateStr,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const Expanded(child: Divider(indent: 10, endIndent: 10)),
-                Text("${t.amount.toInt()} PKR", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                Text(
+                  '${t.amount.toInt()} PKR',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -107,53 +156,85 @@ class HistoryPage extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 24),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
+                color: AppTheme.inputFillColor(context),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 children: [
-                  Text("🛒", style: const TextStyle(fontSize: 24)),
+                  const Text('🛒', style: TextStyle(fontSize: 24)),
                   const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(t.description, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(t.category, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t.description,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          t.category,
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
-                  Text("-${t.amount.toInt()} PKR", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    '-${t.amount.toInt()} PKR',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         );
-      } ,
+      },
     );
   }
 }
 
 class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    this.emoji,
+    this.isSelected = false,
+  });
+
   final String label;
   final String? emoji;
   final bool isSelected;
-  const _FilterChip({required this.label, this.emoji, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isSelected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.surface,
+        color: isSelected ? colorScheme.onSurface : colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: colorScheme.outline),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-           if (emoji != null) Text(emoji!, style: const TextStyle(fontSize: 14)),
-           if (emoji != null) const SizedBox(width: 4),
-           Text(label, style: TextStyle(color: isSelected ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.onSurface, fontSize: 12)),
+          if (emoji != null) Text(emoji!, style: const TextStyle(fontSize: 14)),
+          if (emoji != null) const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? colorScheme.surface : colorScheme.onSurface,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );

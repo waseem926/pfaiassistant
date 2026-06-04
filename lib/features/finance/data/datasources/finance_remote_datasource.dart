@@ -15,14 +15,24 @@ class FinanceRemoteDataSourceImpl implements FinanceRemoteDataSource {
 
   @override
   Future<TransactionModel> getParsedTransaction(String prompt) async {
-    const systemPrompt = '''
+    var userPrompt = prompt;
+    var preferredCategory = '';
+
+    final categoryMatch = RegExp(r'^\[([^\]]+)\]\s*(.*)$').firstMatch(prompt);
+    if (categoryMatch != null) {
+      preferredCategory = categoryMatch.group(1) ?? '';
+      userPrompt = categoryMatch.group(2) ?? prompt;
+    }
+
+    final systemPrompt = '''
 You are a financial assistant. Extract transaction data from the user's text.
 Return ONLY a JSON object with these keys: 'amount', 'category', 'description'.
 Example: { "amount": 500.0, "category": "Food", "description": "Biryani" }
 If no transaction is found, return empty values.
+${preferredCategory.isNotEmpty ? 'Prefer category: $preferredCategory' : ''}
 ''';
 
-    final content = [Content.text('$systemPrompt \n User: $prompt')];
+    final content = [Content.text('$systemPrompt \n User: $userPrompt')];
     final response = await model.generateContent(content);
 
     var responseText = response.text ?? '{}';
